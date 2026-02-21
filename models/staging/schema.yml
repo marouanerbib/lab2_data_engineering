@@ -1,0 +1,25 @@
+version: 2
+
+models:
+  - name: stg_playstore_apps
+    columns:
+      - name: app_id
+        tests:
+          - unique
+          - not_null
+      - name: app_title
+        tests:
+          - not_null
+
+  - name: stg_playstore_reviews
+    columns:
+      - name: review_id
+        tests:
+          - unique
+          - not_null
+      - name: app_id
+        tests:
+          - not_null
+          - relationships:
+              to: ref('stg_playstore_apps')
+              field: app_id

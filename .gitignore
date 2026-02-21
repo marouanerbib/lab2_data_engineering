@@ -1,0 +1,22 @@
+# dbt defaults
+target/
+dbt_packages/
+logs/
+dbt_modules/
+
+# environments
+venv/
+.venv/
+env/
+.env/
+
+# IDE / OS
+.vscode/
+.idea/
+.DS_Store
+
+# Data files
+*.duckdb
+*.duckdb.wal
+data/raw/
+data/processed/
