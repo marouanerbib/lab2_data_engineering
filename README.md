@@ -1,58 +1,58 @@
-# Google Play Store Data Pipeline (dbt & DuckDB)
+ Google Play Store Data Pipeline (dbt & DuckDB)
 
-This project implements a modular analytical data pipeline using **dbt Core** and **DuckDB**, following the Kimball dimensional modeling methodology. It transforms raw Google Play Store metadata and user reviews into an analytics-ready star schema.
+This project implements a modular analytical data pipeline using **dbt Core** and **DuckDB**, following Kimball dimensional modeling. Raw Google Play Store metadata and user reviews are transformed into an analytics-ready star schema.
 
 ## Project Architecture
 
-The pipeline is structured into three logical layers:
-
-1.  **Staging Layer**: Raw JSONL files are ingested using DuckDB's native JSON reader. Data is cleaned, columns are renamed for consistency, and basic types are enforced.
-2.  **Dimensional Layer**: Descriptive entities are modeled with surrogate keys (MD5 hashes).
-    *   `dim_apps`: Central application metadata.
-    *   `dim_developers`: Unique developer information.
-    *   `dim_categories`: App genres and categories.
-    *   `dim_date`: A conformed date dimension for time-series analysis.
-3.  **Fact Layer**: The central grain of the model.
-    *   `fact_reviews`: Captures individual review events, scores, and timestamps linked to the dimensions.
+1. **Staging Layer**: Raw JSON/JSONL files are ingested using DuckDB JSON readers, then renamed, type-cast, and quality-checked.
+2. **Dimensional Layer**:
+   - `dim_apps`
+   - `dim_developers`
+   - `dim_categories`
+   - `dim_date`
+3. **Fact Layer**:
+   - `fact_reviews` (incremental, review grain = one row per `review_id`)
 
 ## Key Features
 
-*   **SCD Type 2**: Historical tracking of app metadata (like category and price changes) using dbt Snapshots.
-*   **Incremental Loading**: The fact table uses incremental materialization to efficiently process new batches of reviews.
-*   **Data Quality**: Robust schema tests ensure uniqueness, referential integrity, and value ranges across all layers.
-*   **Surrogate Keys**: Use of `dbt_utils` for reliable cross-joining in the star schema.
+- **SCD Type 2 snapshot** for app metadata changes (`snapshots/apps_snapshot.sql`).
+- **Incremental fact loading** for `fact_reviews` using `review_at` watermark.
+- **Data quality tests** for keys, relationships, and value ranges.
+- **Surrogate keys** generated with `dbt_utils.generate_surrogate_key`.
 
 ## Getting Started
 
-### Prerequisites
-*   Python 3.8+
-*   dbt-core
-*   dbt-duckdb
+### 1) Configure profile
+Copy the example profile and adjust if needed:
 
-### Installation
-1. Install dependencies:
-   ```bash
-   dbt deps
-   ```
+```bash
+mkdir -p ~/.dbt
+cp profiles.yml.example ~/.dbt/profiles.yml
+```
 
-2. Run the pipeline:
-   ```bash
-   dbt run
-   ```
+### 2) Install packages
+```bash
+dbt deps
+```
 
-3. Validate the data:
-   ```bash
-   dbt test
-   ```
+### 3) Build models
+```bash
+dbt run
+```
 
-4. Capture snapshots (SCD2):
-   ```bash
-   dbt snapshot
-   ```
+### 4) Run tests
+```bash
+dbt test
+```
 
-## Repository Structure
-*   `models/staging/`: Initial cleanup and type casting.
-*   `models/marts/dimensions/`: Descriptive business entities.
-*   `models/marts/facts/`: Quantitative event data.
-*   `snapshots/`: Logic for tracking slowly changing dimensions.
-*   `data/raw/`: Landing zone for raw JSON ingest files (ignored by git).
+### 5) Run snapshots (SCD2)
+```bash
+dbt snapshot
+```
+
+## Expected built models
+
+- Staging: `stg_playstore_apps`, `stg_playstore_reviews`
+- Dimensions: `dim_apps`, `dim_developers`, `dim_categories`, `dim_date`
+- Fact: `fact_reviews`
+- Snapshot: `apps_snapshot`
