@@ -55,34 +55,40 @@ models:
         tests:
           - not_null
           - relationships:
-              to: ref('dim_apps')
-              field: app_sk
+              arguments:
+                to: ref('dim_apps')
+                field: app_sk
       - name: developer_sk
         tests:
           - not_null
           - relationships:
-              to: ref('dim_developers')
-              field: developer_sk
+              arguments:
+                to: ref('dim_developers')
+                field: developer_sk
       - name: category_sk
         tests:
           - not_null
           - relationships:
-              to: ref('dim_categories')
-              field: category_sk
+              arguments:
+                to: ref('dim_categories')
+                field: category_sk
       - name: date_sk
         tests:
           - not_null
           - relationships:
-              to: ref('dim_date')
-              field: date_sk
+              arguments:
+                to: ref('dim_date')
+                field: date_sk
       - name: review_score
         tests:
           - dbt_utils.accepted_range:
-              min_value: 1
-              max_value: 5
-              inclusive: true
+              arguments:
+                min_value: 1
+                max_value: 5
+                inclusive: true
       - name: review_thumbs_up_count
         tests:
           - dbt_utils.accepted_range:
-              min_value: 0
-              inclusive: true
+              arguments:
+                min_value: 0
+                inclusive: true

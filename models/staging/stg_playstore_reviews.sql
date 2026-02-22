@@ -1,5 +1,5 @@
 with source as (
-    select * from read_json_auto('data/raw/user_reviews_raw.jsonl')
+    select * from read_json_auto('data/raw/user_reviews_raw.json*')
 ),
 typed as (
     select

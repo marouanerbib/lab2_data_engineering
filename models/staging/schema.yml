@@ -13,8 +13,9 @@ models:
       - name: app_price
         tests:
           - dbt_utils.accepted_range:
-              min_value: 0
-              inclusive: true
+              arguments:
+                min_value: 0
+                inclusive: true
 
   - name: stg_playstore_reviews
     columns:
@@ -26,19 +27,22 @@ models:
         tests:
           - not_null
           - relationships:
-              to: ref('stg_playstore_apps')
-              field: app_id
+              arguments:
+                to: ref('stg_playstore_apps')
+                field: app_id
       - name: review_score
         tests:
           - dbt_utils.accepted_range:
-              min_value: 1
-              max_value: 5
-              inclusive: true
+              arguments:
+                min_value: 1
+                max_value: 5
+                inclusive: true
       - name: review_thumbs_up_count
         tests:
           - dbt_utils.accepted_range:
-              min_value: 0
-              inclusive: true
+              arguments:
+                min_value: 0
+                inclusive: true
       - name: review_at
         tests:
           - not_null

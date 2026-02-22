@@ -44,7 +44,48 @@ To track historical changes in app metadata (e.g., price updates or category shi
 - **History Retention**: dbt automatically maintains `dbt_valid_from` and `dbt_valid_to` columns.
 - **Integration**: The fact table was updated to join with `dim_apps_scd`, ensuring that review events are linked to the specific version of the app metadata that was valid at the time the review was written.
 
+## 6. Before vs After: Debugging and Validation Comparison
+
+This section summarizes the concrete issues observed during execution and the corrective actions applied.
+
+### Before (Initial State)
+- `dbt run` failed because the reviews source path expected `data/raw/user_reviews_raw.jsonl`, while the available file was `user_reviews_raw.json`.
+- `dbt test` failed massively when models were not built yet (missing relations downstream).
+- `dbt` deprecation warnings were raised for generic tests using top-level arguments (`relationships` and `dbt_utils.accepted_range`).
+- After sources were loaded, 3 data quality tests still failed:
+  - `unique_dim_developers_developer_nk`
+  - `unique_dim_developers_developer_sk`
+  - `unique_fact_reviews_review_id`
+
+### Root Causes
+- File naming mismatch in staging source ingestion for reviews.
+- `dim_developers` allowed multiple rows per natural key (`developer_nk`) because `select distinct` included additional descriptive attributes.
+- The incremental filter in `fact_reviews` used `>= max(review_at)`, which can re-include boundary rows and create duplicates.
+
+### Fixes Applied
+- Updated reviews source ingestion to support both file extensions:
+  - `models/staging/stg_playstore_reviews.sql`
+  - `read_json_auto('data/raw/user_reviews_raw.json*')`
+- Migrated generic test syntax to dbt 1.11+ compliant format:
+  - `models/staging/schema.yml`
+  - `models/marts/schema.yml`
+  - Moved test parameters under `arguments:`.
+- Reworked developer dimension deduplication:
+  - `models/marts/dimensions/dim_developers.sql`
+  - Enforced one row per `developer_nk` using `row_number()` and deterministic ranking.
+- Corrected incremental watermark logic:
+  - `models/marts/facts/fact_reviews.sql`
+  - Changed incremental predicate from `>=` to `>`.
+
+### After (Final Validation)
+- Build command:
+  - `dbt run --full-refresh` -> `PASS=7, ERROR=0`
+- Test command:
+  - `dbt test` -> `PASS=39, ERROR=0`
+- Outcome:
+  - The pipeline is now stable, fully buildable, and all quality checks pass.
+
 ---
 **Authors:**
-- Ilyass Elkhezan
+- Ilyass El Khazane
 - Rbib Marouane

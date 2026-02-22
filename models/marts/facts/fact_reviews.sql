@@ -20,7 +20,7 @@ with reviews as (
         review_created_version
     from {{ ref('stg_playstore_reviews') }}
     {% if is_incremental() %}
-    where review_at >= (select coalesce(max(review_at), cast('1900-01-01' as timestamp)) from {{ this }})
+    where review_at > (select coalesce(max(review_at), cast('1900-01-01' as timestamp)) from {{ this }})
     {% endif %}
 )
 
