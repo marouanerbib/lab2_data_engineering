@@ -1,0 +1,8 @@
+playstore_analytics:
+  target: dev
+  outputs:
+    dev:
+      type: duckdb
+      path: ./playstore_analytics.duckdb
+      threads: 4
+      schema: main
