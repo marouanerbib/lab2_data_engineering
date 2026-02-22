@@ -1,24 +1,23 @@
-with stg_apps as (
-    select * from {{ ref('stg_playstore_apps') }}
-),
-unique_developers as (
+with developers as (
     select distinct
+        coalesce(nullif(trim(developer_id), ''), trim(developer_name)) as developer_nk,
         developer_id,
         developer_name,
         developer_email,
         developer_website,
         developer_address,
-        row_number() over (partition by developer_id order by developer_name) as rn
-    from stg_apps
-    where developer_id is not null
+        developer_privacy_policy
+    from {{ ref('stg_playstore_apps') }}
+    where coalesce(nullif(trim(developer_id), ''), trim(developer_name)) is not null
 )
 
 select
-    {{ dbt_utils.generate_surrogate_key(['developer_id']) }} as developer_sk,
-    developer_id as developer_natural_key,
+    {{ dbt_utils.generate_surrogate_key(['developer_nk']) }} as developer_sk,
+    developer_nk,
+    developer_id,
     developer_name,
     developer_email,
     developer_website,
-    developer_address
-from unique_developers
-where rn = 1
+    developer_address,
+    developer_privacy_policy
+from developers
