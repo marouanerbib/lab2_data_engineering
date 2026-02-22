@@ -1,16 +1,15 @@
-with stg_apps as (
-    select * from {{ ref('stg_playstore_apps') }}
-),
-unique_categories as (
+with categories as (
     select distinct
+        coalesce(nullif(trim(category_id), ''), trim(category_name)) as category_nk,
         category_id,
         category_name
-    from stg_apps
-    where category_id is not null
+    from {{ ref('stg_playstore_apps') }}
+    where coalesce(nullif(trim(category_id), ''), trim(category_name)) is not null
 )
 
 select
-    {{ dbt_utils.generate_surrogate_key(['category_id']) }} as category_sk,
-    category_id as category_natural_key,
+    {{ dbt_utils.generate_surrogate_key(['category_nk']) }} as category_sk,
+    category_nk,
+    category_id,
     category_name
-from unique_categories
+from categories
