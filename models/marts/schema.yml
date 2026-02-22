@@ -1,0 +1,88 @@
+version: 2
+
+models:
+  - name: dim_apps
+    columns:
+      - name: app_sk
+        tests:
+          - unique
+          - not_null
+      - name: app_id
+        tests:
+          - unique
+          - not_null
+
+  - name: dim_developers
+    columns:
+      - name: developer_sk
+        tests:
+          - unique
+          - not_null
+      - name: developer_nk
+        tests:
+          - unique
+          - not_null
+
+  - name: dim_categories
+    columns:
+      - name: category_sk
+        tests:
+          - unique
+          - not_null
+      - name: category_nk
+        tests:
+          - unique
+          - not_null
+
+  - name: dim_date
+    columns:
+      - name: date_sk
+        tests:
+          - unique
+          - not_null
+      - name: date_day
+        tests:
+          - unique
+          - not_null
+
+  - name: fact_reviews
+    columns:
+      - name: review_id
+        tests:
+          - unique
+          - not_null
+      - name: app_sk
+        tests:
+          - not_null
+          - relationships:
+              to: ref('dim_apps')
+              field: app_sk
+      - name: developer_sk
+        tests:
+          - not_null
+          - relationships:
+              to: ref('dim_developers')
+              field: developer_sk
+      - name: category_sk
+        tests:
+          - not_null
+          - relationships:
+              to: ref('dim_categories')
+              field: category_sk
+      - name: date_sk
+        tests:
+          - not_null
+          - relationships:
+              to: ref('dim_date')
+              field: date_sk
+      - name: review_score
+        tests:
+          - dbt_utils.accepted_range:
+              min_value: 1
+              max_value: 5
+              inclusive: true
+      - name: review_thumbs_up_count
+        tests:
+          - dbt_utils.accepted_range:
+              min_value: 0
+              inclusive: true
