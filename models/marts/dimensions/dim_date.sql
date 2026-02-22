@@ -1,23 +1,18 @@
-with stg_reviews as (
-    select * from {{ ref('stg_playstore_reviews') }}
-),
-raw_dates as (
-    select distinct
-        cast(review_at as date) as review_date
-    from stg_reviews
+with dates as (
+    select distinct cast(review_at as date) as date_day
+    from {{ ref('stg_playstore_reviews') }}
     where review_at is not null
-),
-date_dimension as (
-    select
-        -- date natural key in format YYYYMMDD
-        cast(strftime(review_date, '%Y%m%d') as integer) as date_key,
-        review_date as date_actual,
-        extract(year from review_date) as year,
-        extract(month from review_date) as month,
-        extract(day from review_date) as day,
-        extract(quarter from review_date) as quarter,
-        extract(isodow from review_date) as day_of_week
-    from raw_dates
 )
 
-select * from date_dimension
+select
+    {{ dbt_utils.generate_surrogate_key(['date_day']) }} as date_sk,
+    date_day,
+    extract(year from date_day) as year,
+    extract(quarter from date_day) as quarter,
+    extract(month from date_day) as month,
+    extract(day from date_day) as day_of_month,
+    extract(week from date_day) as week_of_year,
+    extract(isodow from date_day) as iso_day_of_week,
+    strftime(date_day, '%A') as day_name,
+    strftime(date_day, '%B') as month_name
+from dates
